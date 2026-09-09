@@ -14,6 +14,7 @@ import time
 from urllib.parse import parse_qs, urlsplit
 from fuentes import EXTRA, RAW, get, load_extra, today
 from servidor import ROOT, LOCK, persist
+from agenda import snapshot, load_agenda, latest_pdf
 
 TTL = 300  # Evita repetir descargas por cada persona que abre el enlace.
 CACHE = {}
@@ -44,7 +45,7 @@ def cached(key, loader):
 def render_page():
     with LOCK:
         payload = json.loads((ROOT/'panel'/'panel_datos.json').read_text())
-    payload.update(delivery='public', public_api=public_url())
+    payload.update(delivery='public', public_api=public_url(), agenda=snapshot())
     data = json.dumps(payload, ensure_ascii=False).replace('</', '<\\/')
     return (ROOT/'panel'/'plantilla.html').read_text().replace('__PAYLOAD__', data).encode()
 
@@ -70,6 +71,12 @@ def application(environ, start_response):
                 if not public_url():
                     raise ValueError('Falta PUBLIC_URL para conectar el archivo compartido')
                 headers.append(('Content-Disposition', 'attachment; filename="panel_economico.html"'))
+        elif path == '/api/agenda':
+            body = json.dumps(load_agenda(), ensure_ascii=False).encode()
+        elif path == '/api/ipom.pdf':
+            body, filename = latest_pdf()
+            mime = 'application/pdf'
+            headers.append(('Content-Disposition', f'attachment; filename="{filename}"'))
         elif path == '/api/serie':
             id = parse_qs(environ.get('QUERY_STRING', '')).get('id', [''])[0]
             c = next((c for c in EXTRA if c['id'] == id), None)

@@ -3,7 +3,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
 WORKDIR /app
 COPY panel/requirements-web.txt /app/panel/requirements-web.txt
 RUN pip install --no-cache-dir -r panel/requirements-web.txt
-COPY panel/fuentes.py panel/servidor.py panel/web_publica.py panel/plantilla.html panel/panel_datos.json /app/panel/
+COPY panel/agenda.py panel/agenda_respaldo.json panel/fuentes.py panel/servidor.py panel/web_publica.py panel/plantilla.html panel/panel_datos.json /app/panel/
 ADD datos_1.tar.gz /app/panel/
 ADD datos_2.tar.gz /app/panel/
 ADD datos_3.tar.gz /app/panel/

@@ -11,6 +11,7 @@ import time
 from urllib.parse import urlparse, parse_qs
 import webbrowser
 import sys
+from agenda import snapshot, load_agenda, latest_pdf
 from fuentes import EXTRA, load_extra, get, RAW, today
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -37,6 +38,7 @@ def persist(result, year=None):
             result = dict(original, data=sorted({**dict(original['data']), **rows}.items()), checked=dt.datetime.now(dt.timezone.utc).isoformat())
         payload['series'] = [result if c['id'] == result['id'] else c for c in payload['series']]
         payload['cutoff'] = today().isoformat()
+        payload['agenda'] = snapshot()
         body = json.dumps(payload, ensure_ascii=False)
         temp = path.with_suffix('.tmp')
         temp.write_text(body); temp.replace(path)
@@ -61,6 +63,16 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == '/':
             body = (ROOT / 'panel_economico.html').read_text().replace('__LOCAL_TOKEN__', TOKEN).encode()
             self.respond(body, 'text/html; charset=utf-8'); return
+        if parsed.path in ('/api/agenda', '/api/ipom.pdf'):
+            try:
+                if parsed.path == '/api/agenda':
+                    self.respond(json.dumps(load_agenda(), ensure_ascii=False).encode(), 'application/json')
+                else:
+                    body, filename = latest_pdf()
+                    self.respond(body, 'application/pdf', filename=filename)
+            except Exception:
+                self.respond(b'{"error":"No se pudo comprobar el ultimo IPoM"}', 'application/json', 502)
+            return
         if parsed.path == '/api/mindicador':
             if self.headers.get('X-Panel-Token') != TOKEN:
                 self.send_error(403); return
@@ -102,9 +114,10 @@ class Handler(BaseHTTPRequestHandler):
             return
         self.send_error(404)
 
-    def respond(self, body, mime, code=200):
+    def respond(self, body, mime, code=200, filename=None):
         self.send_response(code)
         self.send_header('Content-Type', mime)
+        if filename: self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
         self.send_header('Content-Length', str(len(body)))
         self.send_header('Cache-Control', 'no-store')
         self.send_header('X-Content-Type-Options', 'nosniff')

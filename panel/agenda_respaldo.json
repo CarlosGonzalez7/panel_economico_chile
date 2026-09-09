@@ -1,0 +1,77 @@
+{
+  "events": [
+    {
+      "kind": "rpm",
+      "start": "2026-01-26",
+      "end": "2026-01-27"
+    },
+    {
+      "kind": "rpm",
+      "start": "2026-03-24",
+      "end": "2026-03-24"
+    },
+    {
+      "kind": "rpm",
+      "start": "2026-04-27",
+      "end": "2026-04-28"
+    },
+    {
+      "kind": "rpm",
+      "start": "2026-06-16",
+      "end": "2026-06-16"
+    },
+    {
+      "kind": "rpm",
+      "start": "2026-07-27",
+      "end": "2026-07-28"
+    },
+    {
+      "kind": "rpm",
+      "start": "2026-09-08",
+      "end": "2026-09-08"
+    },
+    {
+      "kind": "rpm",
+      "start": "2026-10-26",
+      "end": "2026-10-27"
+    },
+    {
+      "kind": "rpm",
+      "start": "2026-12-15",
+      "end": "2026-12-15"
+    },
+    {
+      "kind": "ipom",
+      "start": "2026-03-25",
+      "end": "2026-03-25"
+    },
+    {
+      "kind": "ipom",
+      "start": "2026-06-17",
+      "end": "2026-06-17"
+    },
+    {
+      "kind": "ipom",
+      "start": "2026-09-09",
+      "end": "2026-09-09"
+    },
+    {
+      "kind": "ipom",
+      "start": "2026-12-16",
+      "end": "2026-12-16"
+    }
+  ],
+  "latest": {
+    "period": "2026-06",
+    "title": "IPoM · junio 2026",
+    "url": "https://www.bcentral.cl/documents/33528/8414425/IPoM%20junio%202026.pdf/93388589-0929-4ad6-b166-10981ca34946"
+  },
+  "calendar_checked": "2026-09-09T11:48:54.377473+00:00",
+  "report_checked": "2026-09-09T11:48:54.377473+00:00",
+  "errors": [
+    "events",
+    "latest"
+  ],
+  "calendar_source": "https://www.bcentral.cl/es/web/banco-central/noticias-y-publicaciones/prensa/calendario-de-politica-monetaria-y-financiera",
+  "report_source": "https://www.bcentral.cl/areas/politica-monetaria/informe-de-politica-monetaria"
+}
