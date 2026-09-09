@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Variables de entorno / secretos
+.env
+.env.*
+
+# Caché y logs
+.cache/
+logs/
+
+# Backups y comprimidos
+*.tar.gz
+*.zip
