@@ -1,5 +1,7 @@
 # Panel Económico de Chile
 
+![Vista previa del Observatorio Económico de Chile](dashboard_preview.png)
+
 Dashboard interactivo para consultar, explorar y descargar indicadores macroeconómicos y financieros de Chile.
 
 🔗 **Demo:** https://panel-economico-chile.onrender.com/
