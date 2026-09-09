@@ -73,5 +73,14 @@
     "latest"
   ],
   "calendar_source": "https://www.bcentral.cl/es/web/banco-central/noticias-y-publicaciones/prensa/calendario-de-politica-monetaria-y-financiera",
-  "report_source": "https://www.bcentral.cl/areas/politica-monetaria/informe-de-politica-monetaria"
+  "report_source": "https://www.bcentral.cl/areas/politica-monetaria/informe-de-politica-monetaria",
+  "summary": {
+    "period": "2026-06",
+    "title": "IPoM de junio de 2026 · Última edición verificada",
+    "source": "https://www.bcentral.cl/areas/politica-monetaria/informe-de-politica-monetaria",
+    "paragraphs": [
+      "El escenario central combina mayor inflación por el shock de costos asociado al conflicto en Medio Oriente con una actividad local más débil que la prevista. El crecimiento de 2026 se proyecta entre 1% y 1,75%, afectado por el desempeño de sectores vinculados a recursos naturales; para 2027 se anticipa una expansión de 2% a 3%, apoyada en una recuperación de la inversión. La composición de la demanda cambia: aumenta el impulso fiscal, mientras el consumo privado pierde fuerza y la inversión se revisa a la baja en 2026, aunque mejora su perspectiva de mediano plazo.",
+      "La convergencia del IPC anual a 3% se mantiene prevista para el segundo trimestre de 2027. El balance de riesgos inflacionarios se ha equilibrado, pero la incertidumbre continúa elevada. Para el seguimiento de política monetaria destacan la evolución del petróleo, la propagación del shock de costos a otros precios y la persistencia de la debilidad de la actividad. La trayectoria de la TPM permanece condicionada a la información que se acumule en cada reunión; el escenario no supone una senda incondicional de tasas."
+    ]
+  }
 }
