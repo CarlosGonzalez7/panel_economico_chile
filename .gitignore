@@ -13,6 +13,11 @@ __pycache__/
 .cache/
 logs/
 
-# Backups y comprimidos
-*.tar.gz
+# Comprimidos generales
 *.zip
+*.tar.gz
+
+# Estos archivos forman parte del despliegue
+!datos_1.tar.gz
+!datos_2.tar.gz
+!datos_3.tar.gz
