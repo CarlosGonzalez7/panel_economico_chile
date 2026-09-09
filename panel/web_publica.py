@@ -8,6 +8,7 @@ import datetime as dt
 import gzip
 import json
 import os
+import subprocess
 import threading
 import time
 from urllib.parse import parse_qs, urlsplit
@@ -95,7 +96,8 @@ def application(environ, start_response):
         else:
             status, body = '404 Not Found', b'{"error":"No encontrado"}'
     except Exception as exc:
-        print(f'Fuente web no disponible: {path}: {type(exc).__name__}', flush=True)
+        detail = ('curl=' + str(exc.returncode) + ' ' + (exc.stderr or b'').decode(errors='replace')[:500]) if isinstance(exc, subprocess.CalledProcessError) else str(exc)[:500]
+        print(f'Fuente web no disponible: {path}?{environ.get("QUERY_STRING", "")}: {type(exc).__name__}: {detail}', flush=True)
         status, body = '502 Bad Gateway', b'{"error":"Fuente no disponible; se conserva el respaldo"}'
     if body and 'gzip' in environ.get('HTTP_ACCEPT_ENCODING', '') and len(body) > 1024:
         body = gzip.compress(body)

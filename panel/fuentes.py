@@ -43,7 +43,15 @@ def _get(url, path, renew=False, data=None, validator=None):
     args = ['curl', '-sS', '-L', '--fail', '--connect-timeout', '6', '--max-time', '25', '-A', 'Mozilla/5.0', url]
     if data:
         args += ['--data', data]
-    result = subprocess.run(args, check=True, capture_output=True).stdout
+    for attempt in range(2):
+        try:
+            result = subprocess.run(args, check=True, capture_output=True).stdout
+            break
+        except subprocess.CalledProcessError as exc:
+            # Solo reintentar errores transitorios de transporte; no páginas inválidas.
+            if attempt or 'si3.bcentral.cl/' not in url or exc.returncode not in (6, 7, 28, 52, 56):
+                raise
+            time.sleep(0.5)
     # Rechazar páginas de error antes de reemplazar una respuesta guardada.
     if path.suffix == '.json':
         decoded = json.loads(result)
@@ -100,22 +108,9 @@ def config():
 EXTRA = config()
 
 def bcentral(c, renew=False):
-    url = 'https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_ESTADIST_MACRO/MN_EST_MACRO_IV/PEM_INDBUR/PEM_INDBUR?cbFechaInicio=2000&cbFechaTermino='+str(today().year)+'&cbFrecuencia=MONTHLY&cbCalculo=NONE'
-    p = RAW / 'ipsa_bcentral.html'
-    text = get(url, p, renew).decode('utf-8-sig')
-    headers = re.findall(r'<th class="thData"[^>]*>(.*?)</th>', text, re.S)
-    headers = [h for h in headers if re.fullmatch(r'[A-Za-z]+\.\d{4}', h)]
-    tr = next(t for t in re.findall(r'<tr\b[^>]*>.*?</tr>', text, re.S) if 'data-header="F013.IBC.IND.N.7.LAC.CL.CLP.BLO.M"' in t)
-    values = re.findall(r'<td class="ar col">(.*?)</td>', tr, re.S)
-    if len(values) != len(headers): raise ValueError('Estructura BDE inesperada')
-    months = {m:i+1 for i,m in enumerate(['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'])}
-    rows = []
-    for h,v in zip(headers,values):
-        v = html.unescape(re.sub('<[^>]+>', '', v)).strip()
-        if v in ('', '-', '—'): continue
-        m,y = h.split('.')
-        rows.append([f'{y}-{months[m]:02d}-01', float(v.replace('.','').replace(',','.'))])
-    return pack(c, rows, [(p,url)])
+    return bde_series(c, 'F013.IBC.IND.N.7.LAC.CL.CLP.BLO.M',
+                      'CAP_ESTADIST_MACRO/MN_EST_MACRO_IV/PEM_INDBUR/PEM_INDBUR',
+                      'ipsa_bcentral.html', renew)
 
 def parse_bde(raw, code):
     text = raw.decode('utf-8-sig')
@@ -140,10 +135,29 @@ def parse_bde(raw, code):
     return rows
 
 def bde_prices(c, renew=False):
-    url = 'https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/' + c['table'] + '?cbFechaInicio=2000&cbFechaTermino=' + str(today().year) + '&cbFrecuencia=MONTHLY&cbCalculo=NONE'
-    p = RAW / (c['id'] + '_bde.html')
-    raw = get(url, p, renew, validator=lambda body: parse_bde(body, c['series_code']))
-    return pack(c, parse_bde(raw, c['series_code']), [(p,url)])
+    return bde_series(c, c['series_code'], c['table'], c['id'] + '_bde.html', renew)
+
+
+def bde_series(c, code, table, filename, renew=False):
+    root = 'https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/' + table
+    def url(year):
+        return root + '?cbFechaInicio=' + str(year) + '&cbFechaTermino=' + str(today().year) + '&cbFrecuencia=MONTHLY&cbCalculo=NONE'
+    baseline = RAW / filename
+    recent = RAW / (baseline.stem + '_reciente.html')
+    validate = lambda body: parse_bde(body, code)
+    rows = dict(validate(get(url(2000), baseline, validator=validate)))
+    files = [(baseline, url(2000))]
+    if recent.exists():
+        previous = validate(recent.read_bytes())
+        rows.update(previous)
+    # Recuperar también años transcurridos si el panel no se abrió en mucho tiempo.
+    start = min(today().year - 1, int(max(rows)[:4]))
+    if renew:
+        incoming = validate(get(url(start), recent, True, validator=validate))
+        rows.update(incoming)
+    if recent.exists():
+        files.append((recent, url(start)))
+    return pack(c, sorted(rows.items()), files)
 
 def end_month(start, offset=2):
     d = dt.date.fromisoformat(start[:10])
