@@ -147,11 +147,13 @@ function renderAgenda(message='Respaldo guardado; pendiente de comprobar en lín
  $('ipom-summary-source').hidden=!matched;
  $('ipom-summary-source').href='https://www.bcentral.cl/areas/politica-monetaria/informe-de-politica-monetaria';
  const checked=agenda?.report_checked?new Intl.DateTimeFormat('es-CL',{dateStyle:'short',timeStyle:'short',timeZone:'America/Santiago'}).format(new Date(agenda.report_checked)):'';
- $('agenda-status').textContent=message+(checked?' Última comprobación del informe: '+checked+' (Chile).':'');
+ const attempted=agenda?.attempted_at?new Intl.DateTimeFormat('es-CL',{dateStyle:'short',timeStyle:'short',timeZone:'America/Santiago'}).format(new Date(agenda.attempted_at)):'';
+ $('agenda-status').textContent=message+(attempted?' Último intento: '+attempted+' (Chile).':'')+(checked?' Última verificación exitosa del informe: '+checked+' (Chile).':'');
 }
 async function updateAgenda(){
  if(agendaBusy)return;agendaBusy=true;
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
+ $('agenda-status').textContent='Consultando calendario e informe oficiales…';
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),120000);
  try{
   if(isFile&&!remoteAPI)throw Error('Sin servicio');
   const r=await fetch((remoteAPI||'')+'/api/agenda',{cache:'no-store',signal:controller.signal});if(!r.ok)throw Error('Consulta fallida');

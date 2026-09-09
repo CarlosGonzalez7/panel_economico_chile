@@ -3,6 +3,7 @@ import copy
 import datetime as dt
 from html.parser import HTMLParser
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -18,6 +19,7 @@ REPORTS = 'https://www.bcentral.cl/areas/politica-monetaria/informe-de-politica-
 MONTHS = 'enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre'.split()
 LOCK = threading.Lock()
 CACHE = None
+BROWSER_ENABLED = os.environ.get("AGENDA_BROWSER", "0") == "1"
 
 def normalized(text):
     return ' '.join(''.join(c for c in unicodedata.normalize('NFD', text.lower()) if not unicodedata.combining(c)).split())
@@ -79,27 +81,71 @@ def download(url):
 def snapshot():
     return json.loads((BASE/'agenda_respaldo.json').read_text())
 
+def browser_read(keys):
+    """Navegador estándar, sin técnicas de ocultación; una instancia por consulta."""
+    from playwright.sync_api import sync_playwright
+    variants={
+        'events': [CALENDAR, 'https://www.bcentral.cl/noticias-y-publicaciones/prensa/calendario-de-politica-monetaria-y-financiera'],
+        'latest': [REPORTS, 'https://www.bcentral.cl/es/areas/politica-monetaria/informe-de-politica-monetaria']}
+    parsers={'events':parse_calendar,'latest':parse_report}
+    results={}
+    with sync_playwright() as playwright:
+        options={'headless':True,'args':['--disable-dev-shm-usage']}
+        if os.environ.get('AGENDA_CHROME_CHANNEL'): options['channel']=os.environ['AGENDA_CHROME_CHANNEL']
+        else:
+            options['executable_path']=os.environ.get('CHROMIUM_PATH','/usr/bin/chromium')
+            options['args'].append('--no-sandbox')
+        browser=playwright.chromium.launch(**options)
+        try:
+            page=browser.new_page()
+            page.route('**/*',lambda route:route.abort() if route.request.resource_type in ('image','media','font') else route.continue_())
+            deadline=time.monotonic()+75
+            for key in keys:
+                for url in variants[key]:
+                    remaining=deadline-time.monotonic()
+                    if remaining<2: break
+                    try:
+                        page.goto(url,wait_until='domcontentloaded',timeout=min(18000,remaining*1000))
+                        page.wait_for_function("document.body && document.body.innerText.includes('Política Monetaria')",timeout=min(8000,max(1000,(deadline-time.monotonic())*1000)))
+                        results[key]=parsers[key](page.content())
+                        break
+                    except Exception as exc:
+                        print(f'Agenda navegador {key}: {type(exc).__name__}',flush=True)
+        finally:
+            browser.close()
+    return results
+
 def load_agenda():
     global CACHE
     with LOCK:
-        if CACHE and time.monotonic()-CACHE[0]<300: return copy.deepcopy(CACHE[1])
-        data=snapshot(); errors=[]
-        # Cada fuente conserva su fecha de comprobación; una falla no invalida la otra.
+        if CACHE and time.monotonic()-CACHE[0]<(60 if CACHE[1]['errors'] else 300): return copy.deepcopy(CACHE[1])
+        data=snapshot(); errors=[]; values={}; methods={}
         from concurrent.futures import ThreadPoolExecutor
         def read(url,parser): return parser(download(url).decode('utf-8'))
         with ThreadPoolExecutor(max_workers=2) as pool:
-            jobs=[('events','calendar_checked',pool.submit(read,CALENDAR,parse_calendar)),('latest','report_checked',pool.submit(read,REPORTS,parse_report))]
-            for key,checked,job in jobs:
+            jobs=[('events',pool.submit(read,CALENDAR,parse_calendar)),('latest',pool.submit(read,REPORTS,parse_report))]
+            for key,job in jobs:
                 try:
-                    value=job.result()
-                    if key=='latest' and value['period']<data['latest']['period']: raise ValueError('Informe anterior al respaldo')
-                    data[key]=value; data[checked]=dt.datetime.now(dt.timezone.utc).isoformat()
-                except Exception:
-                    errors.append(key)
-        data['errors']=errors
-        if len(errors)<2:
-            path=BASE/'agenda_respaldo.json'; temp=path.with_suffix('.tmp')
-            temp.write_text(json.dumps(data,ensure_ascii=False)); temp.replace(path)
+                    values[key]=job.result();methods[key]='http'
+                except Exception as exc:
+                    print(f'Agenda consulta directa {key}: {type(exc).__name__}',flush=True)
+        missing=[k for k in ('events','latest') if k not in values]
+        if missing and BROWSER_ENABLED:
+            try:
+                recovered=browser_read(missing)
+                values.update(recovered);methods.update({k:'browser' for k in recovered})
+            except Exception as exc:
+                print(f'Agenda navegador no disponible: {type(exc).__name__}',flush=True)
+        stamp=dt.datetime.now(dt.timezone.utc).isoformat()
+        data['attempted_at']=stamp
+        for key,checked in [('events','calendar_checked'),('latest','report_checked')]:
+            value=values.get(key)
+            if value is None or (key=='latest' and value['period']<data['latest']['period']):
+                errors.append(key);continue
+            data[key]=value;data[checked]=stamp
+        data['errors']=errors;data['methods']={k:v for k,v in methods.items() if k not in errors}
+        path=BASE/'agenda_respaldo.json'; temp=path.with_suffix('.tmp')
+        temp.write_text(json.dumps(data,ensure_ascii=False));temp.replace(path)
         CACHE=(time.monotonic(),data)
         return copy.deepcopy(data)
 

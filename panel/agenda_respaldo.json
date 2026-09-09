@@ -11,6 +11,11 @@
       "end": "2026-03-24"
     },
     {
+      "kind": "ipom",
+      "start": "2026-03-25",
+      "end": "2026-03-25"
+    },
+    {
       "kind": "rpm",
       "start": "2026-04-27",
       "end": "2026-04-28"
@@ -21,6 +26,11 @@
       "end": "2026-06-16"
     },
     {
+      "kind": "ipom",
+      "start": "2026-06-17",
+      "end": "2026-06-17"
+    },
+    {
       "kind": "rpm",
       "start": "2026-07-27",
       "end": "2026-07-28"
@@ -29,6 +39,11 @@
       "kind": "rpm",
       "start": "2026-09-08",
       "end": "2026-09-08"
+    },
+    {
+      "kind": "ipom",
+      "start": "2026-09-09",
+      "end": "2026-09-09"
     },
     {
       "kind": "rpm",
@@ -42,45 +57,32 @@
     },
     {
       "kind": "ipom",
-      "start": "2026-03-25",
-      "end": "2026-03-25"
-    },
-    {
-      "kind": "ipom",
-      "start": "2026-06-17",
-      "end": "2026-06-17"
-    },
-    {
-      "kind": "ipom",
-      "start": "2026-09-09",
-      "end": "2026-09-09"
-    },
-    {
-      "kind": "ipom",
       "start": "2026-12-16",
       "end": "2026-12-16"
     }
   ],
   "latest": {
-    "period": "2026-06",
-    "title": "IPoM · junio 2026",
-    "url": "https://www.bcentral.cl/documents/33528/8414425/IPoM%20junio%202026.pdf/93388589-0929-4ad6-b166-10981ca34946"
+    "period": "2026-09",
+    "title": "IPoM · septiembre 2026",
+    "url": "https://www.bcentral.cl/documents/33528/8619822/IPoM Septiembre 2026.pdf/a20e38ef-756a-3eb3-cd3a-a0bd8383e20b"
   },
-  "calendar_checked": "2026-09-09T11:48:54.377473+00:00",
-  "report_checked": "2026-09-09T11:48:54.377473+00:00",
-  "errors": [
-    "events",
-    "latest"
-  ],
+  "calendar_checked": "2026-09-09T12:21:52.979481+00:00",
+  "report_checked": "2026-09-09T12:21:52.979481+00:00",
+  "errors": [],
   "calendar_source": "https://www.bcentral.cl/es/web/banco-central/noticias-y-publicaciones/prensa/calendario-de-politica-monetaria-y-financiera",
   "report_source": "https://www.bcentral.cl/areas/politica-monetaria/informe-de-politica-monetaria",
   "summary": {
-    "period": "2026-06",
-    "title": "IPoM de junio de 2026 · Última edición verificada",
+    "period": "2026-09",
+    "title": "IPoM de septiembre de 2026 · Síntesis del escenario central",
     "source": "https://www.bcentral.cl/areas/politica-monetaria/informe-de-politica-monetaria",
     "paragraphs": [
-      "El escenario central combina mayor inflación por el shock de costos asociado al conflicto en Medio Oriente con una actividad local más débil que la prevista. El crecimiento de 2026 se proyecta entre 1% y 1,75%, afectado por el desempeño de sectores vinculados a recursos naturales; para 2027 se anticipa una expansión de 2% a 3%, apoyada en una recuperación de la inversión. La composición de la demanda cambia: aumenta el impulso fiscal, mientras el consumo privado pierde fuerza y la inversión se revisa a la baja en 2026, aunque mejora su perspectiva de mediano plazo.",
-      "La convergencia del IPC anual a 3% se mantiene prevista para el segundo trimestre de 2027. El balance de riesgos inflacionarios se ha equilibrado, pero la incertidumbre continúa elevada. Para el seguimiento de política monetaria destacan la evolución del petróleo, la propagación del shock de costos a otros precios y la persistencia de la debilidad de la actividad. La trayectoria de la TPM permanece condicionada a la información que se acumule en cada reunión; el escenario no supone una senda incondicional de tasas."
+      "El IPoM reduce el crecimiento previsto para 2026 de 1,0–1,75% a 0,25–0,75%. La debilidad incorpora ahora una desaceleración de la demanda interna, además de la menor producción minera y los efectos del clima. El deterioro laboral y de la confianza, junto con el encarecimiento de los combustibles, afecta el gasto de hogares y empresas. Para 2027 se anticipa un mayor impulso de la inversión asociado a la Ley de Reconstrucción. Para el diagnóstico macroeconómico, cobra relevancia distinguir cuánto de la pérdida de actividad responde a oferta transitoria y cuánto a una debilidad persistente de la demanda.",
+      "La convergencia de la inflación a 3% continúa prevista para el segundo trimestre de 2027. El escenario combina un shock de costos todavía relevante con menor demanda en el corto plazo y recuperación dentro del horizonte de proyección. La TPM seguirá evaluándose reunión a reunión. El seguimiento debe centrarse en la persistencia de la debilidad interna, la evolución del conflicto en Medio Oriente y las trayectorias alternativas de inflación que podrían exigir una respuesta monetaria distinta."
     ]
+  },
+  "attempted_at": "2026-09-09T12:21:52.979481+00:00",
+  "methods": {
+    "events": "browser",
+    "latest": "browser"
   }
 }
