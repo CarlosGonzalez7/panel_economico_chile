@@ -1,5 +1,4 @@
-# panel_economico_chile
-# Observatorio Económico de Chile
+# Panel Económico de Chile
 
 Dashboard interactivo para consultar, explorar y descargar indicadores macroeconómicos y financieros de Chile.
 
