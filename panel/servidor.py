@@ -12,7 +12,7 @@ from urllib.parse import urlparse, parse_qs
 import webbrowser
 import sys
 from agenda import snapshot, load_agenda, latest_pdf
-from fuentes import EXTRA, load_extra, get, RAW, today
+from fuentes import EXTRA, load_extra, get, RAW, today, official_indicator
 
 ROOT = Path(__file__).resolve().parent.parent
 TOKEN = secrets.token_urlsafe(24)
@@ -35,6 +35,7 @@ def persist(result, year=None):
                 if not date.startswith(year) or not math.isfinite(value): raise ValueError('Dato incorrecto')
                 if original['kind'] == 'level' and value <= 0: raise ValueError('Nivel incorrecto')
                 if date <= today().isoformat(): rows[date] = value
+            original = dict(original, **{key:result[key] for key in ('provider','note','source_url') if key in result})
             result = dict(original, data=sorted({**dict(original['data']), **rows}.items()), checked=dt.datetime.now(dt.timezone.utc).isoformat())
         payload['series'] = [result if c['id'] == result['id'] else c for c in payload['series']]
         payload['cutoff'] = today().isoformat()
@@ -82,7 +83,7 @@ class Handler(BaseHTTPRequestHandler):
             if id not in ('dolar','libra_cobre','tpm','ipc','imacec','uf') or not year.isdigit() or not 2000 <= int(year) <= today().year:
                 self.send_error(400); return
             try:
-                body = get(f'https://mindicador.cl/api/{id}/{year}', RAW/f'{id}_{year}.json', renew=True)
+                body = json.dumps(official_indicator(id, year)).encode() if id in ('imacec','uf') else get(f'https://mindicador.cl/api/{id}/{year}', RAW/f'{id}_{year}.json', renew=True)
                 data = json.loads(body)
                 if data.get('codigo') != id or not isinstance(data.get('serie'), list): raise ValueError('Respuesta incorrecta')
                 persist(data, year)

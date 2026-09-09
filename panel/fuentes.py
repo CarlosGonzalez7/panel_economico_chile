@@ -287,3 +287,41 @@ def load_extra(c, renew=False):
     estimates, files = micro_all(renew)
     return pack(c, [[e['period'], e['estimates'][c['id']]['value']] for e in estimates], files,
                 calculation_details={e['period']: e['estimates'][c['id']] for e in estimates})
+
+
+def parse_uf_sii(raw, year):
+    text=raw.decode('utf-8', errors='replace')
+    months={m:i+1 for i,m in enumerate('enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre'.split())}
+    rows={}
+    for table in re.findall(r'<table\b[^>]*>.*?</table>',text,re.S|re.I):
+        title=re.search(r'<h2[^>]*>\s*([A-Za-z]+)\s*</h2>',table,re.I)
+        if not title or title[1].lower() not in months: continue
+        month=months[title[1].lower()]
+        for day,value in re.findall(r'<th\b[^>]*>\s*<strong>(\d{1,2})</strong>\s*</th>\s*<td\b[^>]*>(.*?)</td>',table,re.S|re.I):
+            value=html.unescape(re.sub('<[^>]+>','',value)).strip()
+            if not value: continue
+            date=dt.date(int(year),month,int(day)).isoformat()
+            number=float(value.replace('.','').replace(',','.'))
+            if not math.isfinite(number) or number<=0: raise ValueError('UF incorrecta')
+            if date in rows and rows[date]!=number: raise ValueError('UF contradictoria')
+            if date<=today().isoformat(): rows[date]=number
+    if not rows: raise ValueError('SII sin valores UF válidos')
+    return sorted(rows.items())
+
+def official_indicator(id, year):
+    if id=='uf':
+        url=f'https://www.sii.cl/valores_y_fechas/uf/uf{year}.htm'
+        path=RAW/f'uf_sii_{year}.html'
+        parser=lambda raw:parse_uf_sii(raw,year)
+        provider='SII (actualización); mindicador.cl (histórico)'
+        note='UF diaria en pesos publicada por SII. Se conserva el histórico previo de mindicador.cl; las fechas consultadas se reemplazan por la fuente oficial. Solo se muestran valores vigentes hasta hoy.'
+    elif id=='imacec':
+        url=f'https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_CCNN/MN_CCNN76/CCNN2018_IMACEC_01_A/638131830306828693?cbFechaInicio={year}&cbFechaTermino={year}&cbFrecuencia=MONTHLY&cbCalculo=YTYPCT'
+        path=RAW/f'imacec_oficial_{year}.html'
+        parser=lambda raw:parse_bde(raw,'F032.IMC.IND.Z.Z.EP18.Z.Z.0.M|YTYPCT')
+        provider='Banco Central de Chile · BDE (actualización); mindicador.cl (histórico)'
+        note='Imacec original, variación respecto del mismo mes del año anterior publicada por BDE (YTYPCT); no es variación mensual ni serie desestacionalizada. Se conservan los años históricos no consultados de mindicador.cl. Sujeto a revisiones.'
+    else: raise ValueError('Indicador oficial desconocido')
+    rows=[(date,value) for date,value in parser(get(url,path,renew=True,validator=parser)) if date.startswith(str(year)) and date<=today().isoformat()]
+    if not rows: raise ValueError('Año oficial sin observaciones vigentes')
+    return dict(codigo=id,unidad_medida='Pesos' if id=='uf' else 'Porcentaje',serie=[dict(fecha=date+'T00:00:00Z',valor=value) for date,value in rows],provider=provider,note=note,source_url=url)

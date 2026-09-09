@@ -12,7 +12,7 @@ import subprocess
 import threading
 import time
 from urllib.parse import parse_qs, urlsplit
-from fuentes import EXTRA, RAW, get, load_extra, today
+from fuentes import EXTRA, RAW, get, load_extra, today, official_indicator
 from servidor import ROOT, LOCK, persist
 from agenda import snapshot, load_agenda, latest_pdf
 
@@ -96,7 +96,7 @@ def application(environ, start_response):
                 status, body = '400 Bad Request', b'{"error":"Indicador o fecha incorrectos"}'
             else:
                 def loader():
-                    data = json.loads(get(f'https://mindicador.cl/api/{id}/{year}', RAW/f'{id}_{year}.json', renew=True))
+                    data = official_indicator(id, year) if id in ('imacec','uf') else json.loads(get(f'https://mindicador.cl/api/{id}/{year}', RAW/f'{id}_{year}.json', renew=True))
                     persist(data, year)
                     return data
                 body = json.dumps(cached((id, year), loader), ensure_ascii=False).encode()
